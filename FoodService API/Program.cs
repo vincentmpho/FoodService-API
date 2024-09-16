@@ -9,17 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Register database
+// Register database 
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("FoodServiceDbConnectionString"));
 });
 
-// Register BlobServiceClient
+// Register BlobServiceClient 
 builder.Services.AddSingleton(u => new BlobServiceClient
 (builder.Configuration.GetConnectionString("StorageAccount")));
 
-// Register Blob service
+// Register Blob service 
 builder.Services.AddSingleton<IBlobService, BlobService>();
 
 //Register Identiy
