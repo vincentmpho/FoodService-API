@@ -114,6 +114,62 @@ namespace FoodService_API.Controllers
             }
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateMenuItem(int id, [FromForm] MenuItemUpdateDto menuItemUpdateDto)
+        {
+            try
+            {
+                // Check if the DTO is valid
+                if (menuItemUpdateDto == null || id != menuItemUpdateDto.Id)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new { message = "Invalid data", errors = ModelState });
+                }
+
+                // Check model validation
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Fetch the menu item from the database
+                MenuItem menuItemFromDb = await _context.MenuItems.FindAsync(id);
+                if (menuItemFromDb == null)
+                {
+                    return NotFound(new { message = "Menu item not found" });
+                }
+
+                // Update fields from DTO
+                menuItemFromDb.Name = menuItemUpdateDto.Name;
+                menuItemFromDb.Price = menuItemUpdateDto.Price;
+                menuItemFromDb.Category = menuItemUpdateDto.Category;
+                menuItemFromDb.SpecialTag = menuItemUpdateDto.SpecialTag;
+                menuItemFromDb.Description = menuItemUpdateDto.Description;
+
+                // If a new file is uploaded, handle file update
+                if (menuItemUpdateDto.File != null && menuItemUpdateDto.File.Length > 0)
+                {
+                    string fileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemUpdateDto.File.FileName)}";
+
+                    // Delete old image if exists
+                    await _blobService.DeleteBlob(menuItemFromDb.Image.Split('/').Last(), SD.SD_Storage_Container);
+
+                    // Upload new image and update the image URL
+                    menuItemFromDb.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemUpdateDto.File);
+                }
+
+                // Save the changes
+                _context.MenuItems.Update(menuItemFromDb);
+                await _context.SaveChangesAsync();
+
+                return StatusCode(StatusCodes.Status200OK, menuItemFromDb);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "An error occurred while updating the menu item.", details = ex.Message });
+            }
+        }
 
     }
 }
