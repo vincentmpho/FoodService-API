@@ -171,5 +171,51 @@ namespace FoodService_API.Controllers
             }
         }
 
+
+        [HttpDelete("{id:int}")]
+
+        public async Task<IActionResult> DeleteMenuItem(int id)
+        {
+            try
+            {
+               
+
+                // Check validation
+                if (id==0)
+                {
+                    return BadRequest();
+                }
+
+                // Fetch the menu item from the database
+                MenuItem menuItemFromDb = await _context.MenuItems.FindAsync(id);
+
+                if (menuItemFromDb == null)
+                {
+                    return NotFound(new { message = "Menu item not found" });
+                }
+
+
+
+                // Delete old image if exists
+                await _blobService.DeleteBlob(menuItemFromDb.Image.Split('/').Last(), SD.SD_Storage_Container);
+
+                int millseconds = 2000;
+                Thread.Sleep(millseconds);
+
+
+                // Reomve menue Item
+                _context.MenuItems.Remove(menuItemFromDb);
+                await _context.SaveChangesAsync();
+
+                return StatusCode(StatusCodes.Status204NoContent);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "An error occurred while updating the menu item.", details = ex.Message });
+            }
+        }
+
     }
 }
