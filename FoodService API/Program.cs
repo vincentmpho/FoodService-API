@@ -1,5 +1,7 @@
+using Azure.Storage.Blobs;
 using FoodService_API.Data;
 using FoodService_API.Models;
+using FoodService_API.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,11 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-//Register DB
+// Register database
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("FoodServiceDbConnectionString"));
 });
+
+// Register BlobServiceClient
+builder.Services.AddSingleton(u => new BlobServiceClient
+(builder.Configuration.GetConnectionString("StorageAccount")));
+
+// Register Blob service
+builder.Services.AddSingleton<IBlobService, BlobService>();
 
 //Register Identiy
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
