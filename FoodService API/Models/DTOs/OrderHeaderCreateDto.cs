@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace FoodService_API.Models
+namespace FoodService_API.Models.DTOs
 {
-    public class OrderHeader
+    public class OrderHeaderCreateDto
     {
-        [Key]
-        public int OrderHeaderId { get; set; }
+ 
         [Required]
         public string PickUpName { get; set; }
         [Required]
@@ -14,14 +13,11 @@ namespace FoodService_API.Models
         [Required]
         public string PickUpEmail { get; set; }
         public string ApplicationUserId { get; set; }
-        [ForeignKey("ApplicationUserId")]
-        public ApplicationUser User { get; set; } 
         public double OrderTotal { get; set; }
 
-        public DateTime OrderDate { get; set; }
         public string StripePaymentIntentID { get; set; }
         public string Status { get; set; }
         public int TotalItems { get; set; }
-        public IEnumerable <OrderDetails> OrderDetails { get; set; } 
+        public IEnumerable<OrderDetailsCreateDto> OrderDetailsDto { get; set; }
     }
 }
