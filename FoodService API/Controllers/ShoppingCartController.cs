@@ -22,6 +22,46 @@ namespace FoodService_API.Controllers
             _logger = logger;
         }
 
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetShoppingCart(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("UserId is null or empty.");
+                    return StatusCode(StatusCodes.Status400BadRequest, "UserId is required.");
+                }
+
+                var shoppingCart = await _context.ShoppingCarts
+                    .Include(u => u.CartItems)
+                    .ThenInclude(u => u.MenuItem)
+                    .FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (shoppingCart == null)
+                {
+                    _logger.LogInformation("Shopping cart not found for user {UserId}.", userId);
+                    return StatusCode(StatusCodes.Status404NotFound, "Shopping cart not found.");
+                }
+
+                if (shoppingCart.CartItems != null && shoppingCart.CartItems.Count > 0)
+                {
+                    shoppingCart.CartTotal = shoppingCart.CartItems.Sum(u => u.Quantity * u.MenuItem.Price);
+                }
+
+                return StatusCode(StatusCodes.Status200OK, shoppingCart);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving the shopping cart for user {UserId}.", userId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing your request.");
+            }
+        }
+
+
+
         [HttpPost]
         public async Task<IActionResult> AddOrUpdateItemInCart(string userId, int menuItemId, int updateQuantityBy)
         {
