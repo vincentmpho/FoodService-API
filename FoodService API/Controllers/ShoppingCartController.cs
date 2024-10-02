@@ -29,16 +29,20 @@ namespace FoodService_API.Controllers
         {
             try
             {
+                ShoppingCart shoppingCart;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    _logger.LogWarning("UserId is null or empty.");
-                    return StatusCode(StatusCodes.Status400BadRequest, "UserId is required.");
+                    shoppingCart = new();
                 }
 
-                var shoppingCart = await _context.ShoppingCarts
+                else
+                {
+                    shoppingCart = await _context.ShoppingCarts
                     .Include(u => u.CartItems)
                     .ThenInclude(u => u.MenuItem)
                     .FirstOrDefaultAsync(u => u.UserId == userId);
+                }
+
 
                 if (shoppingCart == null)
                 {
